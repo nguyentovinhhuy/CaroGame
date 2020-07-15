@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" 
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+        <link rel="stylesheet" href="/caro/core/style.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-dark bg-dark navbar-expand-sm">
+            <ul class="navbar-nav">
+                <li>
+                    <a class="navbar-brand" href="{% url 'caro:index' %}">Caro</a>
+                </li>
+                <li>
+                    <a class="nav-link active" href="{% url 'caro:login' %}">Login</a>
+                </li>
+                <li>
+                    <a class="nav-link" href="{% url 'caro:register' %}">Signup</a>
+                </li>
+                <li>
+                    <a class="nav-link" href="{% url 'caro:logout' %}">Logout</a>
+                </li>
+                <li>
+                    <a class="nav-link" href="{% url 'caro:lobby' %}">Lobby</a>
+                </li>
+            </ul>
+        </nav>
+        <div class= "jombotron jombotron-fluid" id= "header">
+            <div class= "container">
+                <h1>Welcome to the caro online game</h1>
+                <p>Please login</p>
+                <p>Don't have an account, <a href="{% url 'caro:register' %}">Signup</a></p>
+            </div>
+        </div>
+        <div class="container">
+            {% if messages %}
+            {% for message in messages %}
+                <div class="row">
+                    <p>{{message}}</p>
+                </div>
+            {% endfor %}
+        {% endif %}
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class= "col-12">
+                    <form action="{% url 'caro:login' %}" method="POST">
+                        {% csrf_token %}
+                        {% load crispy_forms_tags %}
+                        <label for="username">Username: </label>
+                        <input type="text" name="username" id="username"></br>
+                        <label for="password">Password: </label>
+                        <input type="text" name="password" id="password"></br>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

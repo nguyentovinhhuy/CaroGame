@@ -1,0 +1,93 @@
+<!doctype html>
+<htmL>
+    {% load static %}
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" 
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+        <link rel="stylesheet" href="{% static 'css/game.css' %}">
+    </head>
+    <body>
+        <nav class="navbar navbar-dark bg-dark navbar-expand-sm">
+            <ul class="navbar-nav">
+                <li>
+                    <a class="navbar-brand" href="{% url 'caro:index' %}">Caro</a>
+                </li>
+                <li>
+                    <a class="nav-link" href="{% url 'caro:login' %}">Login</a>
+                </li>
+                <li>
+                    <a class="nav-link" href="{% url 'caro:register' %}">Signup</a>
+                </li>
+                <li>
+                    <a class="nav-link" href="{% url 'caro:logout' %}">Logout</a>
+                </li>
+                <li>
+                    <a class="nav-link active" href="{% url 'caro:lobby' %}">Lobby</a>
+                </li>
+            </ul>
+        </nav>
+        <div id= "app" class="container container-fluid">
+            <div class="container" id= "main-lobby">
+                <div class="row">
+                    <div>
+                        
+                    </div>
+                    <div class="col-8">
+                        <br><br><br>
+                        <button type="button" id= "cell1" @click = "OnTileClick(1)"></button>
+                        <button type="button" id= "cell2" @click = "OnTileClick(2)"></button>
+                        <button type="button" id= "cell3" @click = "OnTileClick(3)"></button>
+                        <button type="button" id= "cell4" @click = "OnTileClick(4)"></button>
+                        <button type="button" id= "cell5" @click = "OnTileClick(5)"></button><br>
+                        <button type="button" id= "cell6" @click = "OnTileClick(6)"></button>
+                        <button type="button" id= "cell7" @click = "OnTileClick(7)"></button>
+                        <button type="button" id= "cell8" @click = "OnTileClick(8)"></button>
+                        <button type="button" id= "cell9" @click = "OnTileClick(9)"></button>
+                        <button type="button" id= "cell10" @click = "OnTileClick(10)"></button><br>
+                        <button type="button" id= "cell11" @click = "OnTileClick(11)"></button>
+                        <button type="button" id= "cell12" @click = "OnTileClick(12)"></button>
+                        <button type="button" id= "cell13" @click = "OnTileClick(13)"></button>
+                        <button type="button" id= "cell14" @click = "OnTileClick(14)"></button>
+                        <button type="button" id= "cell15" @click = "OnTileClick(15)"></button><br>
+                        <button type="button" id= "cell16" @click = "OnTileClick(16)"></button>
+                        <button type="button" id= "cell17" @click = "OnTileClick(17)"></button>
+                        <button type="button" id= "cell18" @click = "OnTileClick(18)"></button>
+                        <button type="button" id= "cell19" @click = "OnTileClick(19)"></button>
+                        <button type="button" id= "cell20" @click = "OnTileClick(20)"></button><br>
+                        <button type="button" id= "cell21" @click = "OnTileClick(21)"></button>
+                        <button type="button" id= "cell22" @click = "OnTileClick(22)"></button>
+                        <button type="button" id= "cell23" @click = "OnTileClick(23)"></button>
+                        <button type="button" id= "cell24" @click = "OnTileClick(24)"></button>
+                        <button type="button" id= "cell25" @click = "OnTileClick(25)"></button><br>
+                    </div>
+                    <div class="col-4" id= "player-info">
+                        <div class="container">
+                            <div class="row">
+                                <h4>{{player.user.username}}</h4>
+                            </div>
+                            <div class="row" id="player-elo">
+                                <p>Elo: {{player.elo}}</p>
+                            </div>
+                            <button class="btn btn-primary" id= "find-match" @click= "FindMatch()">Find match</button><br><br>
+                            <div class= "row" id= "enter-match-id">
+                                <p>Type your match id here and press Find Match to enter a match</p><br>
+                                <input type="text" id= "match-id">
+                            </div>
+                            <button class="btn btn-primary" id= "start-match">Start match</button>
+                            <div class="row" id="get-match-id">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+        var username = "{{player.user.username}}"
+        var elo = "{{player.elo}}"
+    </script>
+    <script src="{% static 'js/game.js' %}"></script>
+</htmL>
