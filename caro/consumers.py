@@ -1,5 +1,6 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
+import random
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -20,6 +21,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         )
 
     async def receive(self, text_data):
+        print (text_data)
         data = json.loads(text_data)
         message_type = data["type"]
 
@@ -35,19 +37,29 @@ class GameConsumer(AsyncWebsocketConsumer):
         tileID = event["data"]["tileID"]
         tile = event["data"]["TileName"]
         coordinates = event["data"]["coordinates"]
+        sender = event["data"]["username"]
 
         await self.send(json.dumps({
             "type": "clicked_tile_response",
             "tileID": tileID,
             "TileName": tile,
-            "coordinates": coordinates
+            "coordinates": coordinates,
+            "sender": sender,
         }))
 
     async def start_request(self, event):
+        print (event["data"]["start_request"])
         username = event["data"]["username"]
+        first_player = random.randint(1, 2)
 
         await self.send(json.dumps({
             "type": "game_start_response",
-            "username": username,
+            "username1": username,
+            "username2": self.room_name,
+            "first_player": first_player,
             "message": "Starting games for room" + self.room_name
         }))
+
+    async def end_game(self, event):
+        await self.send()
+        pass

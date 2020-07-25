@@ -1,15 +1,3 @@
-function makeid(length) {
-    var result           = '';
-    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
-       result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
- }
-
-var game_key = makeid(5)
-console.log("Random key: " + game_key)
 console.log("Username: " + username)
 console.log("Elo: " + elo)
 
@@ -17,16 +5,28 @@ console.log("Elo: " + elo)
 var win_len = 3
 var clicked_tile = []
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 // Temporary init all tile clicked as None
 var i = 0
 var j = 0
-for (i = 0; i <= 5; i++){
+for (i = 0; i < 5; i++){
     var temp = []
-    for (j = 0; j <= 5; j++){
+    for (j = 0; j < 5; j++){
         temp.push(null)
     }
     clicked_tile.push(temp)
 }
+
+// Game socket
+var game_socket = new WebSocket(
+    'ws://' +
+    window.location.host +
+    '/ws/game/' +
+    username +
+    '/'
+);
 
 var app = new Vue({
     el: '#app',
@@ -36,6 +36,8 @@ var app = new Vue({
         tile: "X",
         username: username,
         elo: elo,
+        opponent_name: null,
+        InGameStatus: 0,
     },
     methods: {
         // All types of messages to send via websockets, all stored in message.type
@@ -66,33 +68,41 @@ var app = new Vue({
                         "tileID": tileID, 
                         "TileName": this.tile,
                         "coordinates": coordinates,
-                        "username": this.username
+                        "username": this.username,
+                        "opponent_name": this.opponent_name
                     }))
-                    //this.isPlayerTurn = 0
+                    this.isPlayerTurn = 0
                 }
             }else{
                 console.log("This is not your turn")
             }
         },
         FindMatch: function(event) {
-            var room_name = document.querySelector("#match-id").value
-            console.log("RoomID entered: " + room_name)
-            if (room_name == game_key){
-                window.alert("You cannot enter your own game key")
+            var opponent_name = document.querySelector("#match-id").value
+            console.log("Username entered: " + opponent_name)
+            var username = this.username
+            if (opponent_name == username){
+                window.alert("You cannot enter your own username")
             }else{
+                this.opponent_name = opponent_name
                 game_socket = new WebSocket(
                     'ws://' +
                     window.location.host +
                     '/ws/game/' +
-                    room_name +
+                    opponent_name +
                     '/'
                 )       
+                
+                game_socket.onopen = function (){
+                    console.log(username)
+                    game_socket.send(JSON.stringify({
+                        "type": "start_request",
+                        "start_request": true,
+                        "username": username,
+                    }))
+                }
 
-                game_socket.send(JSON.stringify({
-                    "type": "start_request",
-                    "start_request": true,
-                    "username": this.username,
-                }))
+                game_socket.onmessage = onMessage
             }
         }, 
     },
@@ -100,42 +110,68 @@ var app = new Vue({
 
     },
 })
-
-// Game socket
-var game_socket = new WebSocket(
-    'ws://' +
-    window.location.host +
-    '/ws/game/' +
-    game_key +
-    '/'
-);
-
-game_socket.onmessage = function(msg){
+function onMessage(msg){
     var msg = JSON.parse(msg.data)
     var message_type = msg["type"]
     if (message_type == "clicked_tile_response"){
         var IDclicked = msg["tileID"]
         var coordinates = msg["coordinates"]
         var TileName = msg["TileName"]
+        var sender = msg["sender"]
         var tile = document.querySelector("#cell" + IDclicked)
         console.log("Tile clicked: ", IDclicked)
         console.log("Cooridnates of tile clicked: ", coordinates)
         console.log("Name of tile clcked: ", TileName)
-        tile.innerHTML = app.$data.tile
+        tile.innerHTML = TileName
         app.$data.clicked_tile[coordinates[1]][coordinates[0]] = TileName
+        console.log("Current username: ", app.$data.username)
+        console.log("Sender of the message: ", sender)
+        if (sender != app.$data.username){
+            app.$data.isPlayerTurn = 1
+            console.log("It is now your turn")
+        }else{
+            app.$data.isPlayerTurn = 0
+            console.log("It is now the opponent's turn")
+        }
     }else if (message_type == "game_start_response"){
-        clear_all_tiles()
+        var username1 = msg["username1"]
+        var username2 = msg["username2"]
+        var first_player = msg["first_player"]
+        if (app.$data.username == username1 || app.$data.username == username2){
+            if (app.$data.InGameStatus){
+                console.log("User already in game")
+                return
+            }
+            var user_number
+            clear_all_tiles()
+            if (app.$data.username == username1){
+                user_number = 1
+            }else{
+                user_number = 2
+            }
+            if (first_player == user_number){
+                app.$data.isPlayerTurn = 1
+                app.$data.tile = "X"
+                console.log("Game start!")
+                console.log("You are the first player")
+            }else{
+                app.$data.isPlayerTurn = 0
+                app.$data.tile = "O"
+                console.log("Game start!")
+                console.log("You are the secoond player")
+            }
+            app.$data.InGameStatus = 1
+        }else{
+            console.log("You are not in the game")
+        }
+    }else if (message_type == "end_game"){
+
+    }else{
+        console.error("Invalid type of response")
     }
 }
 
-
-document.querySelector("#start-match").onclick = function () {
-    var element = document.createElement("p");
-    element.innerHTML = "Your game key is " + game_key + ". Share this key to your opponent";
-    var game_details = document.querySelector("#get-match-id")
-    game_details.innerHTML = " "
-    game_details.appendChild(element)
-}
+game_socket.onmessage = onMessage
 
 // Determine if this is a winner with an array of all checked tiles
 // Input:
@@ -209,8 +245,8 @@ function isWinner(tile_clicked, checked_tiles, win_num, symbol) {
 function clear_all_tiles() {
     var i = 1
     for (i = 1; i <= 25; i++){
-        document.querySelector("#tile" + i).innerHTML = ""
-        var y = (i - 1) / 5
+        document.querySelector("#cell" + i.toString()).innerHTML = ""
+        var y = Math.floor((i - 1) / 5)
         var x = (i - 1) % 5
         app.$data.clicked_tile[y][x] = null
     }
